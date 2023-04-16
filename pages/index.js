@@ -67,3 +67,10 @@ export default function Home() {
     </>
   );
 }
+
+export async function getServerSideProps({ req, query, res }) {
+  console.log(req);
+  return {
+    props: { postData: {} },
+  };
+}

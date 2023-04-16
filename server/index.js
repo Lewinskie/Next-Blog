@@ -37,7 +37,6 @@ const typeDefs = gql`
       author: String!
       category: String!
       featuredImage: String!
-      createdAt: String!
       profileImage: String!
       about: String!
     ): Blog!
@@ -48,7 +47,6 @@ const typeDefs = gql`
       author: String!
       category: String!
       featuredImage: String!
-      createdAt: String!
       profileImage: String!
       about: String!
     ): Blog!
@@ -79,7 +77,6 @@ const resolvers = {
         author,
         category,
         featuredImage,
-        createdAt,
         profileImage,
         about,
       };

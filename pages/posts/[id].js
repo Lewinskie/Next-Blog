@@ -1,5 +1,5 @@
 import { gql, useQuery } from "@apollo/client";
-// import { client } from "../_app";
+import { ServerClient } from "../_app";
 import { CalendarMonthRounded } from "@mui/icons-material";
 import {
   Card,
@@ -37,48 +37,48 @@ const GET_POST = gql`
   }
 `;
 
-const PostDetails = () => {
-  const router = useRouter();
-  const { id } = router.query;
-  const { loading, error, data } = useQuery(GET_POST, {
-    variables: { blogId: id },
-  });
+const PostDetails = ({ postData }) => {
+  // const router = useRouter();
+  // const { id } = router.query;
+  // const { loading, error, data } = useQuery(GET_POST, {
+  //   variables: { blogId: id },
+  // });
 
-  if (loading)
-    return (
-      <Container>
-        <Typography>Loading....</Typography>
-      </Container>
-    );
-  if (error)
-    return (
-      <Container>
-        <Typography>{error.message}</Typography>
-      </Container>
-    );
-  console.log(data);
+  // if (loading)
+  //   return (
+  //     <Container>
+  //       <Typography>Loading....</Typography>
+  //     </Container>
+  //   );
+  // if (error)
+  //   return (
+  //     <Container>
+  //       <Typography>{error.message}</Typography>
+  //     </Container>
+  //   );
+  // console.log(data);
 
   return (
     <Container sx={{ marginBottom: "20px" }}>
       <Head>
-        <title>{data.blog.title}</title>
+        <title>{postData?.title}</title>
       </Head>
 
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Card sx={{ background: "#112240" }}>
             <CardMedia
-              image={data.blog.featuredImage}
+              image={postData?.featuredImage}
               sx={{ height: "200px" }}
             />
 
-            <CardHeader title={data.blog.title} />
+            <CardHeader title={postData?.title} />
 
             <CardContent>
               <Wrapper sx={{ justifyContent: "space-between" }}>
                 <Typography sx={{ width: "100%", color: "#8892B0" }}>
                   Article by&nbsp;
-                  <span style={{ color: "#64FFDA" }}>{data.blog.author}</span>
+                  <span style={{ color: "#64FFDA" }}>{postData?.author}</span>
                 </Typography>
 
                 <Wrapper sx={{ justifyContent: "right", color: "#8892B0" }}>
@@ -86,7 +86,7 @@ const PostDetails = () => {
                     sx={{ color: "pink", marginRight: "10px" }}
                   />
                   <Typography variant="caption" sx={{ color: "#8892B0" }}>
-                    {data.blog.createdAt}
+                    {postData?.createdAt}
                   </Typography>
                 </Wrapper>
               </Wrapper>
@@ -97,7 +97,7 @@ const PostDetails = () => {
                   marginTop: "10px",
                 }}
               >
-                {data.blog.content}
+                {postData?.content}
               </Typography>
             </CardContent>
           </Card>
@@ -107,8 +107,8 @@ const PostDetails = () => {
             <CardContent>
               <Wrapper style={{ justifyContent: "center" }}>
                 <Image
-                  src={data.blog.profileImage}
-                  alt={data.blog.title}
+                  src={postData?.profileImage}
+                  alt={postData?.title}
                   height={100}
                   width={100}
                   style={{ borderRadius: "50%" }}
@@ -128,10 +128,10 @@ const PostDetails = () => {
                   variant="h5"
                   sx={{ margin: "20px 0px", color: "#64FFDA" }}
                 >
-                  About&nbsp;{data.blog.author}
+                  About&nbsp;{postData?.author}
                 </Typography>
                 <Typography variant="body1" sx={{ color: "#8892B0" }}>
-                  {data.blog.about}
+                  {postData?.about}
                 </Typography>
               </div>
             </CardContent>
@@ -144,14 +144,21 @@ const PostDetails = () => {
 
 export default PostDetails;
 
-// export async function getServerSideProps({ params }) {
-//   const { id } = params;
-
-//   const { loading, error, data } = await client.query({
-//     query: GET_POST,
-//     variables: { blogId: id },
-//   });
-//   return {
-//     props: { data, error, loading },
-//   };
-// }
+export async function getServerSideProps({ query, params, resolvedUrl }) {
+  const { id } = query;
+  console.log(resolvedUrl);
+ let postData = null;
+  try {
+    console.log("making the query");
+    const response = await ServerClient.query({
+    query: GET_POST,
+    variables: { blogId: Number(id) },
+  });
+  postData = response?.data?.blog || null;
+} catch(err){
+  console.log(err);
+}
+  return {
+    props: { postData },
+  };
+}

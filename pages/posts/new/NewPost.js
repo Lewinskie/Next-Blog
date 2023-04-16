@@ -4,7 +4,10 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 import { Grid, Container, TextField, Typography, Button } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 import Head from "next/head";
+
 
 const CREATE_BLOG = gql`
   mutation Mutation(
@@ -73,33 +76,52 @@ const NewPost = () => {
     profileImage: "",
     about: "",
   });
-  const [createBlog, { data }] = useMutation(CREATE_BLOG);
+  const [loader, setLoader] = useState(false);
+  const [responseMessage, setResponseMessage] = useState({
+    status: "success",
+    message: "",
+  });
+  const [createBlog] = useMutation(CREATE_BLOG);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setBlog((prevBlog) => ({ ...prevBlog, [name]: value }));
   };
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    createBlog({
-      variables: {
-        title: blog.title,
-        content: blog.content,
-        author: blog.author,
-        category: blog.category,
-        featuredImage: blog.featuredImage,
-        profileImage: blog.profileImage,
-        about: blog.about,
-      },
-    }).then((res) => console.log(res.data));
+    setLoader(true);
+    setTimeout(() => {
+      createBlog({
+        variables: {
+          title: blog.title,
+          content: blog.content,
+          author: blog.author,
+          category: blog.category,
+          featuredImage: blog.featuredImage,
+          profileImage: blog.profileImage,
+          about: blog.about,
+        },
+      }).then((res) => {
+        setLoader(false);
+        console.log("You submitted successfully")}).catch(res => {
+          setLoader(false);
+          console.log(res)});
+    }, 2000);
+    
   };
   return (
     <Page>
       <Head>
         <title>New Blog Post</title>
       </Head>
-
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loader}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <form onSubmit={handleSubmit}>
         <Grid container spacing={3}>
           <Grid item>
