@@ -15,7 +15,7 @@ const Banner = () => {
   return (
     <BannerWrapper>
       <div>
-        <Image src="/construction.png" width={300} height={300} />
+        <Image src="/construction.png" width={300} height={300} alt="banner" />
       </div>
 
       <Typography variant="h4">Banner under construction</Typography>

@@ -21,7 +21,7 @@ const Wrapper = styled("div")({
 });
 
 const Post = ({ blog }) => {
-  console.log(blog);
+  // console.log(blog);
   return (
     <Card sx={{ background: "#112240" }}>
       <PostLink href={`/posts/${blog.id}`}>

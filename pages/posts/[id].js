@@ -1,4 +1,4 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
 import { ServerClient } from "../_app";
 import { CalendarMonthRounded } from "@mui/icons-material";
 import {
@@ -13,7 +13,7 @@ import {
 import { styled } from "@mui/system";
 import Head from "next/head";
 import Image from "next/image";
-import { useRouter } from "next/router";
+// import { useRouter } from "next/router";
 
 const Wrapper = styled("div")({
   width: "100%",
@@ -144,20 +144,20 @@ const PostDetails = ({ postData }) => {
 
 export default PostDetails;
 
-export async function getServerSideProps({ query, params, resolvedUrl }) {
+export async function getServerSideProps({ query }) {
   const { id } = query;
-  console.log(resolvedUrl);
- let postData = null;
+  // console.log(id)
+
+  let postData = null;
   try {
-    console.log("making the query");
     const response = await ServerClient.query({
-    query: GET_POST,
-    variables: { blogId: Number(id) },
-  });
-  postData = response?.data?.blog || null;
-} catch(err){
-  console.log(err);
-}
+      query: GET_POST,
+      variables: { blogId: Number(id) },
+    });
+    postData = response?.data?.blog || null;
+  } catch (err) {
+    console.log(err);
+  }
   return {
     props: { postData },
   };

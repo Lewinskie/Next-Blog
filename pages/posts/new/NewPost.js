@@ -1,52 +1,43 @@
 import { gql, useMutation } from "@apollo/client";
 import "react-quill/dist/quill.snow.css";
 import dynamic from "next/dynamic";
-import { useState } from "react";
-import { Grid, Container, TextField, Typography, Button } from "@mui/material";
+import { Grid, Container, TextField, Button, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import Backdrop from '@mui/material/Backdrop';
-import CircularProgress from '@mui/material/CircularProgress';
+
 import Head from "next/head";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { CREATE_BLOG } from "@/mutations/blogMutations";
+import { GET_BLOGS } from "@/queries/BlogQueries";
+import { useRouter } from "next/router";
 
+const validationSchema = Yup.object().shape({
+  title: Yup.string().required("Title is required"),
+  content: Yup.string().required("Content is required"),
+  author: Yup.string().required("Author name is required"),
+  category: Yup.string().required("Category name is required"),
+  featuredImage: Yup.string().required("Featired image is required"),
+  profileImage: Yup.string().required("Profile Image is required"),
+  about: Yup.string().required("About Author is required"),
+});
 
-const CREATE_BLOG = gql`
-  mutation Mutation(
-    $title: String!
-    $content: String!
-    $author: String!
-    $category: String!
-    $featuredImage: String!
-    $profileImage: String!
-    $about: String!
-  ) {
-    createBlog(
-      title: $title
-      content: $content
-      author: $author
-      category: $category
-      featuredImage: $featuredImage
-      profileImage: $profileImage
-      about: $about
-    ) {
-      id
-      title
-      content
-      author
-      category
-      featuredImage
-      profileImage
-      about
-    }
-  }
-`;
+const initialValues = {
+  title: "",
+  content: "",
+  author: "",
+  category: "",
+  featuredImage: "",
+  profileImage: "",
+  about: "",
+};
 
-const ReactQuill = dynamic(
-  () => import(/*webpackChunkName:"reactQuill"*/ "react-quill"),
-  {
-    loading: () => <>Loading...</>,
-    ssr: false,
-  }
-);
+// const ReactQuill = dynamic(
+//   () => import(/*webpackChunkName:"reactQuill"*/ "react-quill"),
+//   {
+//     loading: () => <>Loading...</>,
+//     ssr: false,
+//   }
+// );
 const Page = styled(Container)({
   background: "white",
   color: "black",
@@ -66,136 +57,147 @@ const Page = styled(Container)({
   },
 });
 
+const FormTypography = styled(Typography)({
+  color: "black",
+});
+
 const NewPost = () => {
-  const [blog, setBlog] = useState({
-    title: "",
-    content: "",
-    author: "",
-    category: "",
-    featuredImage: "",
-    profileImage: "",
-    about: "",
+  const router = useRouter();
+  const [createBlog, { loading, error, data }] = useMutation(CREATE_BLOG, {
+    onCompleted: () => {
+      console.log(data);
+    },
+    refetchQueries: [{ query: GET_BLOGS }],
   });
-  const [loader, setLoader] = useState(false);
-  const [responseMessage, setResponseMessage] = useState({
-    status: "success",
-    message: "",
-  });
-  const [createBlog] = useMutation(CREATE_BLOG);
+  if (loading) return <>Loading</>;
+  if (error) return <>{error}</>;
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setBlog((prevBlog) => ({ ...prevBlog, [name]: value }));
+  const handleSubmit = async (values) => {
+    const {
+      title,
+      content,
+      author,
+      category,
+      featuredImage,
+      profileImage,
+      about,
+    } = values;
+    await createBlog({
+      variables: {
+        title,
+        content,
+        author,
+        category,
+        featuredImage,
+        profileImage,
+        about,
+      },
+    });
+    router.push("/");
   };
 
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setLoader(true);
-    setTimeout(() => {
-      createBlog({
-        variables: {
-          title: blog.title,
-          content: blog.content,
-          author: blog.author,
-          category: blog.category,
-          featuredImage: blog.featuredImage,
-          profileImage: blog.profileImage,
-          about: blog.about,
-        },
-      }).then((res) => {
-        setLoader(false);
-        console.log("You submitted successfully")}).catch(res => {
-          setLoader(false);
-          console.log(res)});
-    }, 2000);
-    
-  };
   return (
     <Page>
       <Head>
         <title>New Blog Post</title>
       </Head>
-      <Backdrop
-        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={loader}
+
+      <Formik
+        initialValues={initialValues}
+        validationSchema={validationSchema}
+        onSubmit={handleSubmit}
       >
-        <CircularProgress color="inherit" />
-      </Backdrop>
-      <form onSubmit={handleSubmit}>
-        <Grid container spacing={3}>
-          <Grid item>
-            <Typography variant="h6">Create New Post</Typography>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <Typography variant="h6">Title</Typography>
-            <input
-              type="text"
-              name="title"
-              value={blog.title}
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={12}>
-            <Typography variant="h6">Content</Typography>
-            <ReactQuill
-              theme="snow"
-              value={blog.content}
-              onChange={(content) => setBlog({ ...blog, content })}
-            />
-          </Grid>
+        {({ isSubmitting }) => (
+          <Form>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <FormTypography variant="h6">Create New Post</FormTypography>
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <FormTypography variant="h6">Title</FormTypography>
+                <Field
+                  name="title"
+                  as={TextField}
+                  fullWidth
+                  variant="outlined"
+                />
+                <ErrorMessage name="title" color="error" />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <FormTypography variant="h6">Content</FormTypography>
+                <Field
+                  name="content"
+                  as={TextField}
+                  fullWidth
+                  variant="outlined"
+                />
+                <ErrorMessage name="content" color="error" />
+              </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
-            <Typography variant="h6">Author</Typography>
-            <input
-              type="text"
-              name="author"
-              value={blog.author}
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <Typography variant="h6">Category</Typography>
-            <input
-              type="text"
-              name="category"
-              value={blog.category}
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <Typography variant="h6">Featured Image</Typography>
-            <input
-              type="text"
-              name="featuredImage"
-              value={blog.featuredImage}
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <Typography variant="h6">Profile Image</Typography>
-            <input
-              type="text"
-              name="profileImage"
-              value={blog.profileImage}
-              onChange={handleInputChange}
-            />
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={4}>
-            <Typography variant="h6">About</Typography>
-            <textarea
-              type="text"
-              name="about"
-              value={blog.about}
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Button type="submit" varoant="contained">
-            Submit
-          </Button>
-        </Grid>
-      </form>
+              <Grid item xs={12} sm={6} md={4}>
+                <FormTypography variant="h6">Author</FormTypography>
+                <Field
+                  name="author"
+                  as={TextField}
+                  fullWidth
+                  variant="outlined"
+                />
+                <ErrorMessage name="author" color="error" />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <FormTypography variant="h6">Category</FormTypography>
+                <Field
+                  name="category"
+                  as={TextField}
+                  fullWidth
+                  variant="outlined"
+                />
+                <ErrorMessage name="category" color="error" />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <FormTypography variant="h6">featured Image</FormTypography>
+                <Field
+                  name="featuredImage"
+                  as={TextField}
+                  fullWidth
+                  variant="outlined"
+                />
+                <ErrorMessage name="featuredImage" color="error" />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <FormTypography variant="h6">Profile Image</FormTypography>
+                <Field
+                  name="profileImage"
+                  as={TextField}
+                  fullWidth
+                  variant="outlined"
+                />
+                <ErrorMessage name="profileImage" color="error" />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <FormTypography variant="h6">About</FormTypography>
+                <Field
+                  name="about"
+                  as={TextField}
+                  fullWidth
+                  variant="outlined"
+                />
+                <ErrorMessage name="about" color="error" />
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  variant="contained"
+                  disabled={isSubmitting}
+                  type="submit"
+                  color="primary"
+                >
+                  {isSubmitting ? "Submitting" : "Submit"}
+                </Button>
+              </Grid>
+            </Grid>
+          </Form>
+        )}
+      </Formik>
     </Page>
   );
 };

@@ -3,23 +3,9 @@ import { styled } from "@mui/system";
 import { Card, Container, Grid, Typography } from "@mui/material";
 import { Post, Banner } from "../components";
 import { gql, useQuery } from "@apollo/client";
+import { GET_BLOGS } from "@/queries/BlogQueries";
 
 export default function Home() {
-  const GET_BLOGS = gql`
-    query Blogs {
-      blogs {
-        id
-        title
-        content
-        author
-        category
-        featuredImage
-        createdAt
-        profileImage
-        about
-      }
-    }
-  `;
   const { loading, error, data } = useQuery(GET_BLOGS);
 
   if (loading)
@@ -55,7 +41,7 @@ export default function Home() {
         </Head>
 
         <Grid container spacing={3}>
-          <Grid xs={12}></Grid>
+          <Grid item xs={12}></Grid>
           {data &&
             data.blogs.map((blog) => (
               <Grid item xs={12} sm={12} md={6} lg={4} xl={3} key={blog.id}>
@@ -68,9 +54,9 @@ export default function Home() {
   );
 }
 
-export async function getServerSideProps({ req, query, res }) {
-  console.log(req);
-  return {
-    props: { postData: {} },
-  };
-}
+// export async function getServerSideProps({ req, query, res }) {
+//   // console.log(req);
+//   return {
+//     props: { postData: {} },
+//   };
+// }
