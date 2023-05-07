@@ -31,13 +31,13 @@ const initialValues = {
   about: "",
 };
 
-// const ReactQuill = dynamic(
-//   () => import(/*webpackChunkName:"reactQuill"*/ "react-quill"),
-//   {
-//     loading: () => <>Loading...</>,
-//     ssr: false,
-//   }
-// );
+const ReactQuill = dynamic(
+  () => import(/*webpackChunkName:"reactQuill"*/ "react-quill"),
+  {
+    loading: () => <>Loading...</>,
+    ssr: false,
+  }
+);
 const Page = styled(Container)({
   background: "white",
   color: "black",
@@ -107,7 +107,7 @@ const NewPost = () => {
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
-        {({ isSubmitting }) => (
+        {({ isSubmitting, setFieldValue, values }) => (
           <Form>
             <Grid container spacing={3}>
               <Grid item xs={12}>
@@ -176,12 +176,15 @@ const NewPost = () => {
               </Grid>
               <Grid item xs={12} sm={6} md={4}>
                 <FormTypography variant="h6">About</FormTypography>
-                <Field
+                <ReactQuill theme="snow" value={values.about} name="about" onChange={(text) => {
+                  setFieldValue("about", text);
+                }} />;
+                {/* <Field
                   name="about"
                   as={TextField}
                   fullWidth
                   variant="outlined"
-                />
+                /> */}
                 <ErrorMessage name="about" color="error" />
               </Grid>
               <Grid item xs={12}>
