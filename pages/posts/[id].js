@@ -13,6 +13,7 @@ import {
 import { styled } from "@mui/system";
 import Head from "next/head";
 import Image from "next/image";
+import { Layout } from "@/components";
 // import { useRouter } from "next/router";
 
 const Wrapper = styled("div")({
@@ -59,86 +60,88 @@ const PostDetails = ({ postData }) => {
   // console.log(data);
 
   return (
-    <Container sx={{ marginBottom: "20px" }}>
-      <Head>
-        <title>{postData?.title}</title>
-      </Head>
+    <Layout>
+      <Container sx={{ marginBottom: "20px" }}>
+        <Head>
+          <title>{postData?.title}</title>
+        </Head>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Card sx={{ background: "#112240" }}>
-            <CardMedia
-              image={postData?.featuredImage}
-              sx={{ height: "200px" }}
-            />
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card sx={{ background: "#112240" }}>
+              <CardMedia
+                image={postData?.featuredImage}
+                sx={{ height: "200px" }}
+              />
 
-            <CardHeader title={postData?.title} />
+              <CardHeader title={postData?.title} />
 
-            <CardContent>
-              <Wrapper sx={{ justifyContent: "space-between" }}>
-                <Typography sx={{ width: "100%", color: "#8892B0" }}>
-                  Article by&nbsp;
-                  <span style={{ color: "#64FFDA" }}>{postData?.author}</span>
-                </Typography>
-
-                <Wrapper sx={{ justifyContent: "right", color: "#8892B0" }}>
-                  <CalendarMonthRounded
-                    sx={{ color: "pink", marginRight: "10px" }}
-                  />
-                  <Typography variant="caption" sx={{ color: "#8892B0" }}>
-                    {postData?.createdAt}
+              <CardContent>
+                <Wrapper sx={{ justifyContent: "space-between" }}>
+                  <Typography sx={{ width: "100%", color: "#8892B0" }}>
+                    Article by&nbsp;
+                    <span style={{ color: "#64FFDA" }}>{postData?.author}</span>
                   </Typography>
+
+                  <Wrapper sx={{ justifyContent: "right", color: "#8892B0" }}>
+                    <CalendarMonthRounded
+                      sx={{ color: "pink", marginRight: "10px" }}
+                    />
+                    <Typography variant="caption" sx={{ color: "#8892B0" }}>
+                      {postData?.createdAt}
+                    </Typography>
+                  </Wrapper>
                 </Wrapper>
-              </Wrapper>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: "#8892B0",
-                  marginTop: "10px",
-                }}
-              >
-                {postData?.content}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12}>
-          <Card sx={{ background: "#112240" }}>
-            <CardContent>
-              <Wrapper style={{ justifyContent: "center" }}>
-                <Image
-                  src={postData?.profileImage}
-                  alt={postData?.title}
-                  height={100}
-                  width={100}
-                  style={{ borderRadius: "50%" }}
-                />
-              </Wrapper>
-              <div
-                style={{
-                  display: "flex",
-                  width: "100%",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  textAlign: "center",
-                }}
-              >
                 <Typography
-                  variant="h5"
-                  sx={{ margin: "20px 0px", color: "#64FFDA" }}
+                  variant="body1"
+                  sx={{
+                    color: "#8892B0",
+                    marginTop: "10px",
+                  }}
                 >
-                  About&nbsp;{postData?.author}
+                  {postData?.content}
                 </Typography>
-                <Typography variant="body1" sx={{ color: "#8892B0" }}>
-                  {postData?.about}
-                </Typography>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12}>
+            <Card sx={{ background: "#112240" }}>
+              <CardContent>
+                <Wrapper style={{ justifyContent: "center" }}>
+                  <Image
+                    src={postData?.profileImage}
+                    alt={postData?.title}
+                    height={100}
+                    width={100}
+                    style={{ borderRadius: "50%" }}
+                  />
+                </Wrapper>
+                <div
+                  style={{
+                    display: "flex",
+                    width: "100%",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    textAlign: "center",
+                  }}
+                >
+                  <Typography
+                    variant="h5"
+                    sx={{ margin: "20px 0px", color: "#64FFDA" }}
+                  >
+                    About&nbsp;{postData?.author}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: "#8892B0" }}>
+                    {postData?.about}
+                  </Typography>
+                </div>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    </Layout>
   );
 };
 
@@ -146,7 +149,6 @@ export default PostDetails;
 
 export async function getServerSideProps({ query }) {
   const { id } = query;
-  // console.log(id)
 
   let postData = null;
   try {

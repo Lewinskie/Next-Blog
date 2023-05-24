@@ -1,12 +1,22 @@
 import Head from "next/head";
 import { styled } from "@mui/system";
 import { Card, Container, Grid, Typography } from "@mui/material";
-import { Post, Banner } from "../components";
+import { Post, Banner } from "@/components";
 import { gql, useQuery } from "@apollo/client";
 import { GET_BLOGS } from "@/queries/BlogQueries";
+import RegForm from "@/components/RegForm";
+import { Layout } from "@/components";
 
 export default function Home() {
   const { loading, error, data } = useQuery(GET_BLOGS);
+  const FormWrapper = styled("div")({
+    textAlign: "center",
+    background: "aliceblue",
+    height: "600px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  });
 
   if (loading)
     return (
@@ -32,8 +42,12 @@ export default function Home() {
       </Container>
     );
   return (
-    <>
-      <Banner />
+    <Layout>
+      {/* <Banner /> */}
+      {/* <FormWrapper>
+        <RegForm />
+      </FormWrapper> */}
+
       <Container sx={{ marginBottom: "40px" }}>
         <Head>
           <title>Lewinskie Travels Blog</title>
@@ -50,7 +64,7 @@ export default function Home() {
             ))}
         </Grid>
       </Container>
-    </>
+    </Layout>
   );
 }
 

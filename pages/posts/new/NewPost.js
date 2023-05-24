@@ -3,33 +3,12 @@ import "react-quill/dist/quill.snow.css";
 import dynamic from "next/dynamic";
 import { Grid, Container, TextField, Button, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
-
 import Head from "next/head";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { useFormik } from "formik";
 import * as Yup from "yup";
 import { CREATE_BLOG } from "@/mutations/blogMutations";
 import { GET_BLOGS } from "@/queries/BlogQueries";
 import { useRouter } from "next/router";
-
-const validationSchema = Yup.object().shape({
-  title: Yup.string().required("Title is required"),
-  content: Yup.string().required("Content is required"),
-  author: Yup.string().required("Author name is required"),
-  category: Yup.string().required("Category name is required"),
-  featuredImage: Yup.string().required("Featired image is required"),
-  profileImage: Yup.string().required("Profile Image is required"),
-  about: Yup.string().required("About Author is required"),
-});
-
-const initialValues = {
-  title: "",
-  content: "",
-  author: "",
-  category: "",
-  featuredImage: "",
-  profileImage: "",
-  about: "",
-};
 
 const ReactQuill = dynamic(
   () => import(/*webpackChunkName:"reactQuill"*/ "react-quill"),
@@ -63,38 +42,52 @@ const FormTypography = styled(Typography)({
 
 const NewPost = () => {
   const router = useRouter();
-  const [createBlog, { loading, error, data }] = useMutation(CREATE_BLOG, {
-    onCompleted: () => {
-      console.log(data);
-    },
+  const [createBlog, { loading, error }] = useMutation(CREATE_BLOG, {
     refetchQueries: [{ query: GET_BLOGS }],
   });
-  if (loading) return <>Loading</>;
-  if (error) return <>{error}</>;
 
-  const handleSubmit = async (values) => {
-    const {
-      title,
-      content,
-      author,
-      category,
-      featuredImage,
-      profileImage,
-      about,
-    } = values;
-    await createBlog({
-      variables: {
-        title,
-        content,
-        author,
-        category,
-        featuredImage,
-        profileImage,
-        about,
-      },
-    });
-    router.push("/");
-  };
+  const formik = useFormik({
+    initialValues: {
+      title: "",
+      content: "",
+      author: "",
+      category: "",
+      featuredImage: "",
+      profileImage: "",
+      about: "",
+    },
+    validationSchema: Yup.object({
+      title: Yup.string().required("Title is required"),
+      content: Yup.string().required("Content is required"),
+      author: Yup.string().required("Author name is required"),
+      category: Yup.string().required("Category name is required"),
+      // featuredImage: Yup.mixed().required("Featired image is required"),
+      // profileImage: Yup.mixed().required("Profile Image is required"),
+      about: Yup.string().required("About Author is required"),
+    }),
+    onSubmit: async (values) => {
+      console.log(values);
+      // Push data to the CREATE_BLOG mutation
+      try {
+        await createBlog({
+          variables: {
+            title: values.title,
+            content: values.content,
+            author: values.author,
+            category: values.category,
+            // featuredImage: values.featuredImage,
+            // profileImage: values.profileImage,
+            about: values.about,
+          },
+        });
+        // Redirect to /home to display the blogs
+        router.push("/");
+      } catch (error) {
+        console.log(error);
+      }
+    },
+  });
+  console.log(formik.values);
 
   return (
     <Page>
@@ -102,105 +95,115 @@ const NewPost = () => {
         <title>New Blog Post</title>
       </Head>
 
-      <Formik
-        initialValues={initialValues}
-        validationSchema={validationSchema}
-        onSubmit={handleSubmit}
-      >
-        {({ isSubmitting, setFieldValue, values }) => (
-          <Form>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <FormTypography variant="h6">Create New Post</FormTypography>
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <FormTypography variant="h6">Title</FormTypography>
-                <Field
-                  name="title"
-                  as={TextField}
-                  fullWidth
-                  variant="outlined"
-                />
-                <ErrorMessage name="title" color="error" />
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <FormTypography variant="h6">Content</FormTypography>
-                <Field
-                  name="content"
-                  as={TextField}
-                  fullWidth
-                  variant="outlined"
-                />
-                <ErrorMessage name="content" color="error" />
-              </Grid>
+      <form onSubmit={formik.handleSubmit}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <FormTypography variant="h6">Create New Post</FormTypography>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <FormTypography variant="h6">Title</FormTypography>
+            <TextField
+              name="title"
+              id="title"
+              type="text"
+              placeholder="Enter Blog Title"
+              fullWidth
+              variant="outlined"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.title}
+              error={formik.touched.title && formik.errors.title ? true : false}
+              helperText={formik.touched.title && formik.errors.title}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <FormTypography variant="h6">Content</FormTypography>
+            <ReactQuill
+              theme="snow"
+              value={formik.values.content}
+              name="content"
+              onChange={(value) => formik.setFieldValue("content", value)}
+            />
+          </Grid>
 
-              <Grid item xs={12} sm={6} md={4}>
-                <FormTypography variant="h6">Author</FormTypography>
-                <Field
-                  name="author"
-                  as={TextField}
-                  fullWidth
-                  variant="outlined"
-                />
-                <ErrorMessage name="author" color="error" />
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <FormTypography variant="h6">Category</FormTypography>
-                <Field
-                  name="category"
-                  as={TextField}
-                  fullWidth
-                  variant="outlined"
-                />
-                <ErrorMessage name="category" color="error" />
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <FormTypography variant="h6">featured Image</FormTypography>
-                <Field
-                  name="featuredImage"
-                  as={TextField}
-                  fullWidth
-                  variant="outlined"
-                />
-                <ErrorMessage name="featuredImage" color="error" />
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <FormTypography variant="h6">Profile Image</FormTypography>
-                <Field
-                  name="profileImage"
-                  as={TextField}
-                  fullWidth
-                  variant="outlined"
-                />
-                <ErrorMessage name="profileImage" color="error" />
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <FormTypography variant="h6">About</FormTypography>
-                <ReactQuill theme="snow" value={values.about} name="about" onChange={(text) => {
-                  setFieldValue("about", text);
-                }} />;
-                {/* <Field
-                  name="about"
-                  as={TextField}
-                  fullWidth
-                  variant="outlined"
-                /> */}
-                <ErrorMessage name="about" color="error" />
-              </Grid>
-              <Grid item xs={12}>
-                <Button
-                  variant="contained"
-                  disabled={isSubmitting}
-                  type="submit"
-                  color="primary"
-                >
-                  {isSubmitting ? "Submitting" : "Submit"}
-                </Button>
-              </Grid>
-            </Grid>
-          </Form>
-        )}
-      </Formik>
+          <Grid item xs={12} sm={6} md={4}>
+            <FormTypography variant="h6">Author</FormTypography>
+            <TextField
+              name="author"
+              type="text"
+              fullWidth
+              variant="outlined"
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              value={formik.values.author}
+              error={
+                formik.touched.author && formik.errors.author ? true : false
+              }
+              helperText={formik.touched.author && formik.errors.author}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <FormTypography variant="h6">Category</FormTypography>
+            <TextField
+              name="category"
+              type="text"
+              fullWidth
+              variant="outlined"
+              onChange={formik.handleChange}
+              value={formik.values.category}
+              onBlur={formik.handleBlur}
+              error={
+                formik.touched.category && formik.errors.category ? true : false
+              }
+              helperText={formik.touched.category && formik.errors.category}
+            />
+          </Grid>
+          {/* <Grid item xs={12} sm={6} md={4}>
+            <FormTypography variant="h6">featured Image</FormTypography>
+            <input
+              name="featuredImage"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                setFieldValue("featuredImage", file);
+              }}
+            />
+          </Grid> */}
+          {/* <Grid item xs={12} sm={6} md={4}>
+            <FormTypography variant="h6">Profile Image</FormTypography>
+            <input
+              name="profileImage"
+              type="file"
+              accept="image/*"
+              onChange={(event) => {
+                const file = event.target.files[0];
+                setFieldValue("profileImage", file);
+              }}
+            />
+          </Grid> */}
+          <Grid item xs={12} sm={6} md={4}>
+            <FormTypography variant="h6">About</FormTypography>
+
+            <TextField
+              name="about"
+              type="text"
+              fullWidth
+              variant="outlined"
+              onChange={formik.handleChange}
+              value={formik.values.about}
+              onBlur={formik.handleBlur}
+              error={formik.touched.about && formik.errors.about ? true : false}
+              helperText={formik.touched.about && formik.errors.about}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Button variant="contained" type="submit" color="primary">
+              Create Post
+            </Button>
+          </Grid>
+        </Grid>
+      </form>
     </Page>
   );
 };
